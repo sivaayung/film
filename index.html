@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CINEVERSE - Movie Streaming</title>
+
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0b0b10;
+            color: #fff;
+            font-family: Arial, sans-serif;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 6%;
+            background: #15151d;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        .logo {
+            color: #e50914;
+            font-size: 25px;
+            font-weight: bold;
+        }
+
+        nav a {
+            color: #eee;
+            text-decoration: none;
+            margin-left: 20px;
+        }
+
+        nav a:hover {
+            color: #e50914;
+        }
+
+        .hero {
+            padding: 65px 6%;
+            background: linear-gradient(120deg, #3a101c, #191925);
+        }
+
+        .hero h1 {
+            font-size: clamp(30px, 5vw, 46px);
+            margin-bottom: 15px;
+        }
+
+        .hero p {
+            color: #ccc;
+            margin-bottom: 25px;
+        }
+
+        .search {
+            display: flex;
+            gap: 10px;
+            max-width: 600px;
+        }
+
+        input, select {
+            background: #20202a;
+            color: white;
+            border: 1px solid #383844;
+            border-radius: 7px;
+            padding: 12px;
+        }
+
+        input {
+            flex: 1;
+            min-width: 0;
+        }
+
+        button {
+            background: #e50914;
+            color: white;
+            padding: 12px 17px;
+            border: none;
+            border-radius: 7px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: #b80710;
+        }
+
+        button:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+        }
+
+        main {
+            padding: 35px 6%;
+            min-height: 400px;
+        }
+
+        .section-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .movies {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 20px;
+        }
+
+        .movie {
+            background: #191920;
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform .2s;
+        }
+
+        .movie:hover {
+            transform: translateY(-5px);
+        }
+
+        .movie img {
+            display: block;
+            width: 100%;
+            aspect-ratio: 2 / 3;
+            object-fit: cover;
+            background: #292933;
+        }
+
+        .info {
+            padding: 12px;
+        }
+
+        .info h3 {
+            font-size: 15px;
+            line-height: 1.4;
+            margin-bottom: 10px;
+        }
+
+        .rating {
+            color: #ffc107;
+            font-size: 13px;
+        }
+
+        .year {
+            color: #aaa;
+            font-size: 12px;
+            margin-top: 8px;
+        }
+
+        .message {
+            text-align: center;
+            padding: 35px 10px;
+            color: #ccc;
+        }
+
+        .error {
+            color: #ff7777;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            z-index: 20;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 18px;
+            background: #000d;
+        }
+
+        .modal-box {
+            position: relative;
+            width: 100%;
+            max-width: 650px;
+            max-height: 90vh;
+            overflow-y: auto;
+            background: #191920;
+            border-radius: 12px;
+        }
+
+        .modal-box > img {
+            width: 100%;
+            max-height: 300px;
+            object-fit: cover;
+        }
+
+        .modal-info {
+            padding: 22px;
+        }
+
+        .modal-info p {
+            color: #ccc;
+            line-height: 1.7;
+            margin: 15px 0;
+        }
+
+        .close {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            font-size: 20px;
+            padding: 7px 13px;
+        }
+
+        .trailer-link {
+            color: #ff7777;
+        }
+
+        footer {
+            padding: 25px;
+            text-align: center;
+            color: #888;
+            border-top: 1px solid #292932;
+            font-size: 13px;
+        }
+
+        [x-cloak] {
+            display: none !important;
+        }
+
+        @media (max-width: 550px) {
+            header {
+                padding: 18px 5%;
+                flex-wrap: wrap;
+                gap: 15px;
+            }
+
+            nav a {
+                margin-left: 10px;
+                font-size: 13px;
+            }
+
+            .hero, main {
+                padding-left: 5%;
+                padding-right: 5%;
+            }
+
+            .movies {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                gap: 13px;
+            }
+        }
+    </style>
+</head>
+
+<body x-data="cineverse()" x-init="init()">
+
+    <header>
+        <div class="logo">CINEVERSE</div>
+        <nav>
+            <a href="#" @click.prevent="popular()">Beranda</a>
+            <a href="#film">Film</a>
+        </nav>
+    </header>
+
+    <section class="hero">
+        <h1>🎬 Temukan Film Favoritmu</h1>
+        <p>Jelajahi berbagai film populer dari seluruh dunia.</p>
+
+        <form class="search" @submit.prevent="searchMovies()">
+            <input
+                type="search"
+                x-model="query"
+                placeholder="Cari judul film..."
+                aria-label="Cari film"
+            >
+            <button type="submit">Cari</button>
+        </form>
+    </section>
+
+    <main id="film">
+        <div class="section-head">
+            <h2 x-text="heading"></h2>
+
+            <select x-model="genre" @change="filterGenre()"
+                    aria-label="Pilih genre">
+                <option value="">Semua Genre</option>
+                <template x-for="g in genres" :key="g.id">
+                    <option :value="g.id" x-text="g.name"></option>
+                </template>
+            </select>
+        </div>
+
+        <div class="message" x-show="loading">
+            Memuat daftar film...
+        </div>
+
+        <div class="message error" x-show="error" x-text="error"></div>
+
+        <div class="message"
+             x-show="!loading && !error && movies.length === 0">
+            Film tidak ditemukan.
+        </div>
+
+        <div class="movies" x-show="!loading && movies.length > 0">
+            <template x-for="film in movies" :key="film.id">
+                <article class="movie"
+                         @click="showDetail(film)"
+                         tabindex="0"
+                         @keydown.enter="showDetail(film)">
+
+                    <img
+                        :src="film.poster_path
+                            ? imageBase + film.poster_path
+                            : placeholder"
+                        :alt="film.title"
+                        loading="lazy"
+                    >
+
+                    <div class="info">
+                        <h3 x-text="film.title"></h3>
+
+                        <div class="rating">
+                            ★
+                            <span x-text="Number(film.vote_average || 0).toFixed(1)"></span>
+                        </div>
+
+                        <div class="year"
+                             x-text="film.release_date
+                                ? film.release_date.slice(0, 4)
+                                : 'Tahun tidak tersedia'">
+                        </div>
+                    </div>
+                </article>
+            </template>
+        </div>
+
+        <div class="message" x-show="!loading && movies.length > 0">
+            <button @click="loadMore()" x-show="!query && !genre">
+                Muat Film Lainnya
+            </button>
+        </div>
+    </main>
+
+    <!-- Detail film -->
+    <div class="modal" x-show="selected" x-cloak
+         @click.self="selected = null"
+         @keydown.escape.window="selected = null">
+
+        <div class="modal-box" x-show="selected">
+            <button class="close" @click="selected = null">×</button>
+
+            <img
+                :src="selected && selected.backdrop_path
+                    ? imageBase + selected.backdrop_path
+                    : placeholder"
+                :alt="selected ? selected.title : ''"
+            >
+
+            <div class="modal-info">
+                <h2 x-text="selected ? selected.title : ''"></h2>
+
+                <p>
+                    ⭐
+                    <span x-text="selected
+                        ? Number(selected.vote_average || 0).toFixed(1)
+                        : ''"></span>
+                    / 10
+                    ·
+                    <span x-text="selected && selected.release_date
+                        ? selected.release_date.slice(0, 4)
+                        : 'Tahun tidak tersedia'"></span>
+                </p>
+
+                <p x-text="selected
+                    ? (selected.overview || 'Sinopsis belum tersedia.')
+                    : ''"></p>
+
+                <button @click="getTrailer(selected)"
+                        :disabled="trailerLoading">
+                    <span x-text="trailerLoading
+                        ? 'Memuat trailer...'
+                        : '▶ Lihat Trailer'"></span>
+                </button>
+
+                <p class="error" x-show="trailerError"
+                   x-text="trailerError"></p>
+
+                <p x-show="trailerUrl">
+                    <a class="trailer-link"
+                       :href="trailerUrl"
+                       target="_blank"
+                       rel="noopener noreferrer">
+                        Buka trailer di YouTube
+                    </a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>© 2026 CINEVERSE</p>
+        <p style="margin-top:8px">
+            Informasi film dari TMDB. Bukan layanan streaming resmi.
+        </p>
+    </footer>
+
+    <script>
+        function cineverse() {
+            return {
+                apiKey: 'c8a7004dfcbcefb90088621be85d6443',
+
+                apiBase: 'https://api.themoviedb.org/3',
+                imageBase: 'https://image.tmdb.org/t/p/w500',
+                placeholder:
+                    'https://placehold.co/500x750/191920/ffffff?text=No+Poster',
+
+                movies: [],
+                genres: [],
+                query: '',
+                genre: '',
+                heading: 'Film Populer',
+                loading: false,
+                error: '',
+                page: 1,
+                selected: null,
+                trailerUrl: '',
+                trailerError: '',
+                trailerLoading: false,
+
+                async api(endpoint, params = {}) {
+                    const url = new URL(this.apiBase + endpoint);
+
+                    url.searchParams.set('api_key', this.apiKey);
+                    url.searchParams.set('language', 'id-ID');
+
+                    Object.entries(params).forEach(([key, value]) => {
+                        if (value !== '' && value != null) {
+                            url.searchParams.set(key, value);
+                        }
+                    });
+
+                    const response = await fetch(url);
+
+                    if (!response.ok) {
+                        if (response.status === 401) {
+                            throw new Error(
+                                'API key tidak valid atau tidak memiliki akses.'
+                            );
+                        }
+
+                        throw new Error(
+                            'Gagal mengambil data film. Periksa koneksi internet.'
+                        );
+                    }
+
+                    return await response.json();
+                },
+
+                async init() {
+                    await Promise.all([
+                        this.popular(),
+                        this.loadGenres()
+                    ]);
+                },
+
+                async loadGenres() {
+                    try {
+                        const data = await this.api('/genre/movie/list');
+                        this.genres = data.genres || [];
+                    } catch (e) {
+                        console.error('Gagal memuat genre:', e.message);
+                    }
+                },
+
+                async fetchMovies(endpoint, params = {}) {
+                    this.loading = true;
+                    this.error = '';
+
+                    try {
+                        const data = await this.api(endpoint, params);
+                        this.movies = data.results || [];
+                    } catch (e) {
+                        this.movies = [];
+                        this.error = e.message;
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                async popular() {
+                    this.query = '';
+                    this.genre = '';
+                    this.page = 1;
+                    this.heading = 'Film Populer';
+
+                    await this.fetchMovies('/movie/popular', {
+                        page: 1
+                    });
+                },
+
+                async searchMovies() {
+                    if (!this.query.trim()) {
+                        await this.popular();
+                        return;
+                    }
+
+                    this.genre = '';
+                    this.page = 1;
+                    this.heading = 'Hasil Pencarian';
+
+                    await this.fetchMovies('/search/movie', {
+                        query: this.query.trim(),
+                        include_adult: false,
+                        page: 1
+                    });
+                },
+
+                async filterGenre() {
+                    this.query = '';
+                    this.page = 1;
+
+                    if (!this.genre) {
+                        await this.popular();
+                        return;
+                    }
+
+                    const item = this.genres.find(
+                        g => String(g.id) === String(this.genre)
+                    );
+
+                    this.heading = item
+                        ? 'Genre: ' + item.name
+                        : 'Film berdasarkan genre';
+
+                    await this.fetchMovies('/discover/movie', {
+                        with_genres: this.genre,
+                        sort_by: 'popularity.desc',
+                        page: 1
+                    });
+                },
+
+                async loadMore() {
+                    if (this.loading) return;
+
+                    const nextPage = this.page + 1;
+                    this.loading = true;
+                    this.error = '';
+
+                    try {
+                        const data = await this.api('/movie/popular', {
+                            page: nextPage
+                        });
+
+                        this.movies = [
+                            ...this.movies,
+                            ...(data.results || [])
+                        ];
+
+                        this.page = nextPage;
+                    } catch (e) {
+                        this.error = e.message;
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+
+                showDetail(film) {
+                    this.selected = film;
+                    this.trailerUrl = '';
+                    this.trailerError = '';
+                },
+
+                async getTrailer(film) {
+                    if (!film || this.trailerLoading) return;
+
+                    this.trailerLoading = true;
+                    this.trailerUrl = '';
+                    this.trailerError = '';
+
+                    try {
+                        const data = await this.api(
+                            `/movie/${film.id}/videos`
+                        );
+
+                        const video = (data.results || []).find(v =>
+                            v.site === 'YouTube' &&
+                            ['Trailer', 'Teaser'].includes(v.type) &&
+                            v.key
+                        );
+
+                        if (video) {
+                            this.trailerUrl =
+                                'https://www.youtube.com/watch?v=' + video.key;
+                        } else {
+                            this.trailerError = 'Trailer tidak tersedia.';
+                        }
+                    } catch (e) {
+                        this.trailerError = e.message;
+                    } finally {
+                        this.trailerLoading = false;
+                    }
+                }
+            };
+        }
+    </script>
+
+</body>
+</html>
